@@ -1,3 +1,6 @@
+var Clicked = false;
+var lastClick = false;
+
 function Startgame() {
 	gameArea.start();
 	Player = new Character("material/Character/element1.png", 5, "Robert", 10, 600);
@@ -8,8 +11,8 @@ var gameArea = {
 	start : function() {
 		var area = this.Box;
 		this.frameNum = 0;
-		area.width = 1028;
-		area.height = 720;
+		area.width = window.innerWidth - 5.5;
+		area.height = window.innerHeight - 5.5;
 		area.style.border = "1px solid black";
 		this.ctx = area.getContext("2d");
 		document.body.insertBefore(area, document.body.childNodes[0]);
@@ -54,7 +57,7 @@ class Character {
 		this.hitObject();
 	}
 	jump() {
-		this.speedY += jumpspeed;
+		this.speedY = -(this.jumpspeed);
 	}
 	hitObject(obj) {
 		if (obj == null) {
@@ -62,15 +65,14 @@ class Character {
 			var left = 0;
 			var right = gameArea.Box.width-this.image.width;
 			var top = 0;
-			var fixY = Math.floor(this.posY);
-			if (fixY > bottom){
+			if (this.posY > bottom){
 				this.posY = bottom;
 				this.hitGround = true;
 			}
-			else if(fixY < bottom) {
+			else if(this.posY < bottom) {
 				this.hitGround = false;
 			}
-			if (fixY < top) {
+			if (this.posY < top) {
 				this.posY = top;
 			}
 			if (this.posX < left) {
@@ -99,13 +101,12 @@ var updateFrame = function() {
 		Player.image.src = "material/Character/element1.png";
 	}
 	if (gameArea.keys && (gameArea.keys[38] || gameArea.keys[32] || gameArea.keys[87]) && (Player.hitGround == true)) {
-		Player.speedY = -(Player.jumpspeed);
+		Player.jump();
 	}
 	gameArea.frameNum += 1;
 	Player.newPos();
 	Player.update();
 	report(gameArea.ctx, Player.posX, Player.posY, Player.curspeedX, Player.curspeedY, Player.hitGround);
-	console.log(Player.hitGround);
 }
 
 function report(ctx, px, py, sx, sy, hg) {
