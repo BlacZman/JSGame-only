@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Game</title>
+	<style type="text/css">
+	body {
+		margin:0;
+		text-align:center;
+	}
+</style>
+</head>
+<body onload="startgame()">
+	<img src="element1.png" style="display:none">
+	<script type="text/javascript">
+		function startgame() {
+			myGamearea.start();
+			mySelf = new component(30, 30, "black", 10, 129);
+			bounceSound = new soundEffect("bounce.wav");
+		}
+		var myGamearea = {
+			canvas : document.createElement("canvas"),
+			start : function() {
+				can = this.canvas;
+				can.width = 1028;
+				can.height = 720;
+				can.style.border = '1px solid black';
+				this.context = can.getContext("2d");
+				document.body.insertBefore(can, document.body.childNodes[0]);
+				this.interval = setInterval(updateFrame,(1000/30));
+				window.addEventListener('keydown', function(e) {
+					myGamearea.keys = (myGamearea.keys || []);
+					myGamearea.keys[e.keyCode] = (e.type == 'keydown');
+				})
+				window.addEventListener('keyup', function(e) {
+					myGamearea.keys = (myGamearea.keys || []);
+					myGamearea.keys[e.keyCode] = (e.type == 'keydown');
+				})
+			},
+			clear : function() {
+				this.context.clearRect(0, 0, can.width, can.height);
+			}
+		};
+		function component(width, height, color, x, y) {
+			this.width = width;
+			this.height = height;
+			this.x = x;
+			this.y = y;
+			this.maxSpeed = 15;
+			this.currentSpeedX = 0;
+			this.accelerateX = 0;
+			this.accelerateY = 0;
+			this.gravity = 0.9;
+			this.gravitySpeed = 0;
+			this.decelerate = 0.3;
+			this.bounce = 0.6;
+			box = myGamearea.context;
+			box.fillStyle = color;
+			box.fillRect(this.x, this.y, this.width, this.height);
+
+			this.update = function() {
+				box = myGamearea.context;
+				box.fillStyle = color;
+				box.fillRect(this.x, this.y, this.width, this.height);
+			};
+			this.newPos = function() {
+				this.gravitySpeed += this.gravity + this.accelerateY;
+				this.currentSpeedX += this.accelerateX;
+				if (this.accelerateX == 0) {
+					if (this.currentSpeedX > 0) {
+						this.currentSpeedX -= this.decelerate;
+					}
+					if (this.currentSpeedX < 0) {
+						this.currentSpeedX += this.decelerate;
+					}
+					if (this.currentSpeedX <= 1 && this.currentSpeedX >= -1) {
+						this.currentSpeedX = 0;
+					}
+				}
+				if (this.currentSpeedX > this.maxSpeed) {
+					this.currentSpeedX = this.maxSpeed;
+				}
+				else if (this.currentSpeedX < -(this.maxSpeed)) {
+					this.currentSpeedX = -(this.maxSpeed);
+				}
+				this.x += this.currentSpeedX;
+				this.y += this.gravitySpeed;
+				this.hitCanvas();
+			};
+			this.hitCanvas = function() {
+				var bottom = myGamearea.canvas.height-this.height;
+				var left = 0;
+				var right = myGamearea.canvas.width-this.width
+				var top = 0;
+				if (this.y > bottom){
+					this.y = bottom;
+					this.gravitySpeed = -(this.gravitySpeed*this.bounce);
+				}
+				if (this.y < top) {
+					this.y = top;
+					this.gravitySpeed = -(this.gravitySpeed*this.bounce);
+				}
+				if (this.x < left) {
+					this.x = left;
+					this.currentSpeedX = -(this.currentSpeedX*this.bounce);
+				}
+				if (this.x > right) {
+					this.x = right;
+					this.currentSpeedX = -(this.currentSpeedX*this.bounce);
+				}
+			}
+		}
+		function updateFrame() {
+			myGamearea.clear();
+			mySelf.accelerateX = 0;
+			mySelf.accelerateY = 0;
+			if (myGamearea.keys && myGamearea.keys[37]) {mySelf.accelerateX = -0.35};
+			if (myGamearea.keys && myGamearea.keys[39]) {mySelf.accelerateX = 0.35};
+			if (myGamearea.keys && myGamearea.keys[38]) {mySelf.accelerateY = -1.6};
+			if (myGamearea.keys && myGamearea.keys[40]) {mySelf.accelerateY = 1.6};
+			//if (myGamearea.keys && myGamearea.keys[220]) {}
+			mySelf.newPos();
+			mySelf.update();
+		}
+		function soundEffect(src) {
+			this.sound = document.createElement("audio");
+			this.sound.src = src;
+			this.sound.setAttribute("preload", "auto");
+			this.sound.setAttribute("control", "none");
+			this.sound.style.display = "none";
+			document.body.appendChild(this.sound);
+			this.play = function() {
+				this.sound.play();
+			}
+			this.stop = function() {
+				this.sound.pause();
+			}
+		}
+	</script>
+</body>
+</html>
