@@ -40,6 +40,7 @@ class Character {
 		this.posX = x;
 		this.posY = y;
 		this.gravity = 0.9;
+		this.hitGround = false;
 	}
 	update() {
 		var box = gameArea.ctx;
@@ -60,10 +61,15 @@ class Character {
 			var left = 0;
 			var right = gameArea.Box.width-this.image.width;
 			var top = 0;
-			if (this.posY > bottom){
+			var fixY = Math.floor(this.posY);
+			if (fixY > bottom){
 				this.posY = bottom;
+				this.hitGround = true;
 			}
-			if (this.posY < top) {
+			else if(fixY < bottom) {
+				this.hitGround = false;
+			}
+			if (fixY < top) {
 				this.posY = top;
 			}
 			if (this.posX < left) {
@@ -78,8 +84,18 @@ class Character {
 var updateFrame = function() {
 	gameArea.clear();
 	Player.curspeedX = 0;
-	if (gameArea.keys && gameArea.keys[37]) {Player.curspeedX = -Player.speedX}
-	if (gameArea.keys && gameArea.keys[39]) {Player.curspeedX = Player.speedX}
+	Player.speedY = 0;
+	if (gameArea.keys && gameArea.keys[37]) {
+		Player.curspeedX = -Player.speedX;
+		Player.image.src = "material/Character/element1_2.png";
+	}
+	if (gameArea.keys && gameArea.keys[39]) {
+		Player.curspeedX = Player.speedX;
+		Player.image.src = "material/Character/element1.png";
+	}
+	if (gameArea.keys && gameArea.keys[38] && (Player.hitGround == true)) {
+		Player.speedY = -15;
+	}
 	Player.newPos();
 	Player.update();
 }
