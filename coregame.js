@@ -7,6 +7,7 @@ var gameArea = {
 	Box : document.createElement("canvas"),
 	start : function() {
 		var area = this.Box;
+		this.frameNum = 0;
 		area.width = 1028;
 		area.height = 720;
 		area.style.border = "1px solid black";
@@ -39,7 +40,7 @@ class Character {
 		this.name = name;
 		this.posX = x;
 		this.posY = y;
-		this.gravity = 0.9;
+		this.gravity = 1;
 		this.hitGround = false;
 	}
 	update() {
@@ -78,24 +79,41 @@ class Character {
 			if (this.posX > right) {
 				this.posX = right;
 			}
+			if (this.hitGround) {
+				this.curspeedY = 0;
+			}
 		}
 	}
 }
+
 var updateFrame = function() {
 	gameArea.clear();
 	Player.curspeedX = 0;
 	Player.speedY = 0;
-	if (gameArea.keys && gameArea.keys[37]) {
+	if (gameArea.keys && (gameArea.keys[37] || gameArea.keys[65])) {
 		Player.curspeedX = -Player.speedX;
 		Player.image.src = "material/Character/element1_2.png";
 	}
-	if (gameArea.keys && gameArea.keys[39]) {
+	if (gameArea.keys && (gameArea.keys[39] || gameArea.keys[68])) {
 		Player.curspeedX = Player.speedX;
 		Player.image.src = "material/Character/element1.png";
 	}
-	if (gameArea.keys && gameArea.keys[38] && (Player.hitGround == true)) {
-		Player.speedY = -15;
+	if (gameArea.keys && (gameArea.keys[38] || gameArea.keys[32] || gameArea.keys[87]) && (Player.hitGround == true)) {
+		Player.speedY = -(Player.jumpspeed);
 	}
+	gameArea.frameNum += 1;
 	Player.newPos();
 	Player.update();
+	report(gameArea.ctx, Player.posX, Player.posY, Player.curspeedX, Player.curspeedY, Player.hitGround);
+	console.log(Player.hitGround);
+}
+
+function report(ctx, px, py, sx, sy, hg) {
+	this.ctx = ctx;
+	this.ctx.font = "15px Arial";
+	this.ctx.fillText("Position X: " + px, 10, 15);
+	this.ctx.fillText("Position Y: " + py, 10, 45);
+	this.ctx.fillText("Speed X: " + sx, 10, 75);
+	this.ctx.fillText("Speed Y: " + sy, 10, 105);
+	this.ctx.fillText("Hit the ground: " + hg, 10, 135);
 }
