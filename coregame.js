@@ -1,9 +1,7 @@
-var Clicked = false;
-var lastClick = false;
-
 function Startgame() {
 	gameArea.start();
-	Player = new Character("material/Character/element1.png", 5, "Robert", 10, 600);
+	Player = new Character("material/Character/element1.png", 5, "Robert", 10, 650);
+	Map1 = new Map("material/Map/tile1.png", 400, 800);
 }
 
 var gameArea = {
@@ -11,8 +9,8 @@ var gameArea = {
 	start : function() {
 		var area = this.Box;
 		this.frameNum = 0;
-		area.width = window.innerWidth - 5.5;
-		area.height = window.innerHeight - 5.5;
+		area.width = window.innerWidth ;//- 5.5;
+		area.height = window.innerHeight ;//- 5.5;
 		area.style.border = "1px solid black";
 		this.ctx = area.getContext("2d");
 		document.body.insertBefore(area, document.body.childNodes[0]);
@@ -31,7 +29,7 @@ var gameArea = {
 	}
 }
 class Character {
-	constructor(imgsrc, /*type, */speed, name, x, y) {
+	constructor(imgsrc, /*type, */speed, name, x, y, width, height) {
 		this.image = new Image();
 		this.image.src = imgsrc;
 		//this.type = type; //enemy, friend or neutral
@@ -39,6 +37,7 @@ class Character {
 		this.curspeedX = 0;
 		this.speedX = speed;
 		this.speedY = 0;
+		this.maxSpeedY = 8;
 		this.curspeedY = 0;
 		this.name = name;
 		this.posX = x;
@@ -53,8 +52,12 @@ class Character {
 	newPos() {
 		this.posX += this.curspeedX;
 		this.curspeedY += this.speedY + this.gravity;
+		if (this.curspeedY > this.maxSpeedY) {
+			this.curspeedY = this.maxSpeedY;
+		}
 		this.posY += this.curspeedY;
 		this.hitObject();
+		this.hitObject(Map1);
 	}
 	jump() {
 		this.speedY = -(this.jumpspeed);
@@ -85,9 +88,39 @@ class Character {
 				this.curspeedY = 0;
 			}
 		}
+		if(obj != null) {
+			var bottom = obj.posY + obj.image.height;
+			var left = obj.posX - this.image.width;
+			var right = obj.posX + obj.image.width;
+			var top = obj.posY - this.image.height;
+			if (this.posX > left && this.posX < right && this.posY > top && this.posY < bottom) {
+				if (this.posY - top <= 5 && this.posX - left != 5 && this.posX - right != -5) {
+					this.posY = top;
+					this.hitGround = true;
+				}
+				if (this.posY - bottom >= -15 && this.posX - left != 5 && this.posX - right != -5) {
+					this.posY = bottom;
+					this.curspeedY = 0;
+				}
+				if (this.posX - left <= 5){
+					this.curspeedX = 0;
+					this.posX = left;
+				}
+				if (this.posX - right >= -5){
+					this.curspeedX = 0;
+					this.posX = right;
+				}
+
+			}
+			if(this.posY < top) {
+				this.hitGround = false;
+			}
+			if (this.hitGround) {
+				this.curspeedY = 0;
+			}
+		}
 	}
 }
-
 var updateFrame = function() {
 	gameArea.clear();
 	Player.curspeedX = 0;
@@ -104,17 +137,34 @@ var updateFrame = function() {
 		Player.jump();
 	}
 	gameArea.frameNum += 1;
+	Map1.draw();
 	Player.newPos();
 	Player.update();
-	report(gameArea.ctx, Player.posX, Player.posY, Player.curspeedX, Player.curspeedY, Player.hitGround);
+	report(gameArea.ctx, Player.posX, Player.posY, Player.curspeedX, Player.curspeedY, Player.hitGround, gameArea.Box.width, gameArea.Box.height);
 }
 
-function report(ctx, px, py, sx, sy, hg) {
+function report(ctx, px, py, sx, sy, hg, width, height) {
 	this.ctx = ctx;
 	this.ctx.font = "15px Arial";
-	this.ctx.fillText("Position X: " + px, 10, 15);
-	this.ctx.fillText("Position Y: " + py, 10, 45);
-	this.ctx.fillText("Speed X: " + sx, 10, 75);
-	this.ctx.fillText("Speed Y: " + sy, 10, 105);
-	this.ctx.fillText("Hit the ground: " + hg, 10, 135);
+	this.ctx.fillText("Width: " + width, 4, 15);
+	this.ctx.fillText("Height: " + height, 4, 30);
+	this.ctx.fillText("Position X: " + px, 4, 45);
+	this.ctx.fillText("Position Y: " + py, 4, 60);
+	this.ctx.fillText("Speed X: " + sx, 4, 75);
+	this.ctx.fillText("Speed Y: " + sy, 4, 90);
+	this.ctx.fillText("Hit the ground: " + hg, 4, 105);
+}
+
+class Map {
+	constructor(tilesrc, x, y) {
+		this.image = new Image();
+		this.image.src = tilesrc;
+		this.posX = x;
+		this.posY = y;
+	}
+	draw() {
+		var box = gameArea.ctx;
+		box.drawImage(this.image, this.posX, this.posY);
+	}
+
 }
